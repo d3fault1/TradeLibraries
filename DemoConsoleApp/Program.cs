@@ -251,6 +251,7 @@ namespace Demo
             {
                 Console.WriteLine(data.Event);
                 Console.WriteLine($">Symbol: {data.Order.Symbol}, Ticket: {data.Order.Ticket}, Time: {data.Order.Time}, Type: {data.Order.Type}, Volume: {data.Order.Lots}, Price: {data.Order.Price}, Profit: {data.Order.Profit}");
+                Console.Write(">");
             }
         }
 
