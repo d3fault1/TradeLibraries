@@ -4,13 +4,15 @@ using System.Linq;
 using Fclp;
 using MT5WrapperInterface;
 using MT4WrapperInterface;
+using CTWrapperInterface;
 using System.Diagnostics;
 
 namespace Demo
 {
     class Program
     {
-        private MT4Wrapper wrapper = new MT4Wrapper();
+        //private MT4Wrapper wrapper = new MT4Wrapper();
+        private CTWrapper wrapper = new CTWrapper();
 
         //private struct CredFormat
         //{
@@ -237,25 +239,25 @@ namespace Demo
             wrapper.OnTradeOccurrance += TradeOccurrance;
         }
 
-        private void QuoteUpdate(object sender, MT4Wrapper.QuoteEventArgs args)
+        private void QuoteUpdate(object sender, CTWrapper.QuoteEventArgs args)
         {
-            p.StandardInput.WriteLine("echo " + wrapper.GetAccountEquity());
+            Console.WriteLine(wrapper.GetAccountEquity());
         }
 
-        private void TradeOccurrance(object sender, MT4Wrapper.TransactionEventArgs args)
+        private void TradeOccurrance(object sender, CTWrapper.TransactionEventArgs args)
         {
-            //Console.WriteLine(args.Event);
-            //foreach (var order in args.Orders)
-            //    Console.WriteLine($">Symbol: {order.Symbol}, Ticket: {order.Ticket}, Time: {order.Time}, Type: {order.Type}, Volume: {order.Lots}, Price: {order.Price}, Profit: {order.Profit}");
-            foreach (var data in args.Data)
-            {
-                Console.WriteLine(data.Event);
-                Console.WriteLine($">Symbol: {data.Order.Symbol}, Ticket: {data.Order.Ticket}, Time: {data.Order.Time}, Type: {data.Order.Type}, Volume: {data.Order.Lots}, Price: {data.Order.Price}, Profit: {data.Order.Profit}");
-                Console.Write(">");
-            }
+            Console.WriteLine(args.Event);
+            foreach (var order in args.Orders)
+                Console.WriteLine($">Symbol: {order.Symbol}, Ticket: {order.Ticket}, Time: {order.Time}, Type: {order.Type}, Volume: {order.Lots}, Price: {order.Price}, Profit: {order.Profit}");
+            //foreach (var data in args.Data)
+            //{
+            //    Console.WriteLine(data.Event);
+            //    Console.WriteLine($">Symbol: {data.Order.Symbol}, Ticket: {data.Order.Ticket}, Time: {data.Order.Time}, Type: {data.Order.Type}, Volume: {data.Order.Lots}, Price: {data.Order.Price}, Profit: {data.Order.Profit}");
+            //    Console.Write(">");
+            //}
         }
 
-        private void ConnectionProgressed(object sender, MT4Wrapper.ConnectionProgressEventArgs args)
+        private void ConnectionProgressed(object sender, CTWrapper.ConnectionProgressEventArgs args)
         {
             //if (args.Progress == "Disconnected")
             //{
@@ -357,8 +359,8 @@ namespace Demo
         };
         private void PollEquity()
         {
-            p.Start();
-            p.StandardInput.AutoFlush = true;
+            //p.Start();
+            //p.StandardInput.AutoFlush = true;
             wrapper.OnQuoteUpdate += QuoteUpdate;
         }
         private void GetOrderHistory(DateTime start, DateTime end)

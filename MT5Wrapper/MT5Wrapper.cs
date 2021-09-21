@@ -971,5 +971,4 @@ namespace MT5WrapperInterface
         PendingCancelled,
         PendingDeleted,
     }
-
 }
