@@ -241,7 +241,7 @@ namespace Demo
 
         private void QuoteUpdate(object sender, CTWrapper.QuoteEventArgs args)
         {
-            Console.WriteLine(wrapper.GetAccountEquity());
+            p.StandardInput.WriteLine(wrapper.GetAccountEquity());
         }
 
         private void TradeOccurrance(object sender, CTWrapper.TransactionEventArgs args)
@@ -359,8 +359,8 @@ namespace Demo
         };
         private void PollEquity()
         {
-            //p.Start();
-            //p.StandardInput.AutoFlush = true;
+            p.Start();
+            p.StandardInput.AutoFlush = true;
             wrapper.OnQuoteUpdate += QuoteUpdate;
         }
         private void GetOrderHistory(DateTime start, DateTime end)
