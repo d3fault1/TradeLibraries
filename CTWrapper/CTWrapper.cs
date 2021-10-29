@@ -9,7 +9,15 @@ namespace CTWrapperInterface
     {
         #region Globals
         private CtApi api;
-        private int port = 2529;
+        private int Port;
+        
+        public bool IsConnected
+        {
+            get
+            {
+                return api.State == CtConnectionState.Connected;
+            }
+        }
 
         public struct AccountInfo
         {
@@ -24,11 +32,15 @@ namespace CTWrapperInterface
         {
             public string Symbol;
             public long Ticket;
-            public DateTime Time;
+            public DateTime OpenTime;
+            public DateTime CloseTime;
             public string Type;
             public double Lots;
-            public double Price;
+            public double OpenPrice;
+            public double ClosePrice;
             public double Profit;
+            public double Swap;
+            public double Commission;
         }
         #endregion
 
@@ -95,9 +107,13 @@ namespace CTWrapperInterface
                 Symbol = e.Symbol,
                 Type = e.Type,
                 Profit = e.Profit,
-                Price = e.OpenPrice,
-                Time = e.OpenTime,
-                Lots = e.Volume
+                OpenPrice = e.OpenPrice,
+                ClosePrice = e.ClosePrice,
+                OpenTime = e.OpenTime,
+                CloseTime = e.CloseTime,
+                Lots = e.Volume,
+                Swap = e.Swap,
+                Commission = e.Commission
             };
             args.Orders[0] = ctorder;
 
@@ -116,9 +132,13 @@ namespace CTWrapperInterface
                 Symbol = e.Symbol,
                 Type = e.Type,
                 Profit = e.Profit,
-                Price = e.OpenPrice,
-                Time = e.OpenTime,
-                Lots = e.Volume
+                OpenPrice = e.OpenPrice,
+                ClosePrice = e.ClosePrice,
+                OpenTime = e.OpenTime,
+                CloseTime = e.CloseTime,
+                Lots = e.Volume,
+                Swap = e.Swap,
+                Commission = e.Commission
             };
             args.Orders[0] = ctorder;
 
@@ -137,12 +157,15 @@ namespace CTWrapperInterface
                 Symbol = e.Symbol,
                 Type = e.Type,
                 Profit = e.Profit,
-                Price = e.OpenPrice,
-                Time = e.OpenTime,
-                Lots = e.Volume
+                OpenPrice = e.OpenPrice,
+                ClosePrice = e.ClosePrice,
+                OpenTime = e.OpenTime,
+                CloseTime = e.CloseTime,
+                Lots = e.Volume,
+                Swap = e.Swap,
+                Commission = e.Commission
             };
             args.Orders[0] = ctorder;
-
             OnTradeOccurrance?.Invoke(sender, args);
         }
         #endregion
@@ -150,6 +173,17 @@ namespace CTWrapperInterface
         #region Constructor
         public CTWrapper()
         {
+            Port = 2529;
+            api = new CtApi();
+            api.ConnectionStateChanged += APIOnConnectionStateChanged;
+            api.OnQuote += APIOnQuoteUpdated;
+            api.OnPositionOpen += APIOnPositionOpen;
+            api.OnPositionModify += APIOnPositionModify;
+            api.OnPositionClose += APIOnPositionClose;
+        }
+        public CTWrapper(int port)
+        {
+            Port = port;
             api = new CtApi();
             api.ConnectionStateChanged += APIOnConnectionStateChanged;
             api.OnQuote += APIOnQuoteUpdated;
@@ -162,7 +196,7 @@ namespace CTWrapperInterface
         #region Exported Functions
         public int Connect()
         {
-            api.BeginConnect(port);
+            api.BeginConnect(Port);
             while (api.State == CtConnectionState.Connecting || api.State == CtConnectionState.Disconnected) Thread.Sleep(1);
             if (api.State == CtConnectionState.Connected) return 0;
             else return 4;
@@ -232,9 +266,13 @@ namespace CTWrapperInterface
                         Symbol = order.Symbol,
                         Type = order.Type,
                         Profit = order.Profit,
-                        Price = order.OpenPrice,
-                        Time = order.OpenTime,
-                        Lots = order.Volume
+                        OpenPrice = order.OpenPrice,
+                        ClosePrice = order.ClosePrice,
+                        OpenTime = order.OpenTime,
+                        CloseTime = order.CloseTime,
+                        Lots = order.Volume,
+                        Swap = order.Swap,
+                        Commission = order.Commission
                     };
                     retlist.Add(ctorder);
                 }
@@ -256,9 +294,13 @@ namespace CTWrapperInterface
                         Symbol = order.Symbol,
                         Type = order.Type,
                         Profit = order.Profit,
-                        Price = order.OpenPrice,
-                        Time = order.OpenTime,
-                        Lots = order.Volume
+                        OpenPrice = order.OpenPrice,
+                        ClosePrice = order.ClosePrice,
+                        OpenTime = order.OpenTime,
+                        CloseTime = order.CloseTime,
+                        Lots = order.Volume,
+                        Swap = order.Swap,
+                        Commission = order.Commission
                     };
                     retlist.Add(ctorder);
                 }

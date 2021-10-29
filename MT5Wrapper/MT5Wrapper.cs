@@ -4,6 +4,7 @@ using MtApi5;
 using System;
 using System.Threading;
 using System.Globalization;
+using System.Collections.Generic;
 
 namespace MT5WrapperInterface
 {
@@ -14,7 +15,16 @@ namespace MT5WrapperInterface
 
         #region Globals
         private MtApi5Client api;
-        private int port = 8228;
+        private int Port;
+
+        public bool IsConnected
+        {
+            get
+            {
+                return api.ConnectionState == Mt5ConnectionState.Connected;
+            }
+        }
+
         public struct AccountInfo
         {
             public string BrokerName;
@@ -28,11 +38,15 @@ namespace MT5WrapperInterface
         {
             public string Symbol;
             public long Ticket;
-            public DateTime Time;
+            public DateTime OpenTime;
+            public DateTime CloseTime;
             public string Type;
             public double Lots;
-            public double Price;
+            public double OpenPrice;
+            public double ClosePrice;
             public double Profit;
+            public double Swap;
+            public double Commission;
         }
 
         uint gTransCnt = 0;
@@ -259,7 +273,7 @@ namespace MT5WrapperInterface
                                         //--- position
                                         double pos_vol = -1;
                                         //---
-                                        if (api.PositionSelect(deal_symbol))
+                                        if (api.PositionSelectByTicket((ulong)api.HistoryDealGetInteger(deal_ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_POSITION_ID)))
                                             pos_vol = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_VOLUME);
 
                                         //--- if the market was entered
@@ -279,13 +293,17 @@ namespace MT5WrapperInterface
                                             api.PositionSelectByTicket((ulong)order_ticket);
                                             var order = new OrderData
                                             {
-                                                Ticket = order_ticket,
+                                                Ticket = api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TICKET),
                                                 Symbol = api.PositionGetString(ENUM_POSITION_PROPERTY_STRING.POSITION_SYMBOL),
-                                                Time = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME)),
+                                                OpenTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME)),
+                                                CloseTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME_UPDATE)),
                                                 Lots = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_VOLUME),
-                                                Price = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN),
+                                                OpenPrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN),
+                                                ClosePrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_CURRENT),
                                                 Profit = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PROFIT),
-                                                Type = new CultureInfo("en-US").TextInfo.ToTitleCase(((ENUM_POSITION_TYPE)api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE)).ToString().Split('_')[2].ToLower())
+                                                Type = new CultureInfo("en-US").TextInfo.ToTitleCase(((ENUM_POSITION_TYPE)api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE)).ToString().Split('_')[2].ToLower()),
+                                                Swap = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_SWAP),
+                                                Commission = 0
                                             };
                                             Ords = new OrderData[1] { order };
                                         }
@@ -306,14 +324,19 @@ namespace MT5WrapperInterface
                                                 {
                                                     TE = TransactionEvent.OrderClosed;
                                                 }
+                                                api.PositionSelectByTicket((ulong)order_ticket); //Needs Work
                                                 var order = new OrderData
                                                 {
-                                                    Ticket = order_ticket,
+                                                    Ticket = api.HistoryDealGetInteger(deal_ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_POSITION_ID),
                                                     Symbol = api.HistoryDealGetString(deal_ticket, ENUM_DEAL_PROPERTY_STRING.DEAL_SYMBOL),
-                                                    Time = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.HistoryDealGetInteger(deal_ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TIME)),
+                                                    OpenTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME)),
+                                                    CloseTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.HistoryDealGetInteger(deal_ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TIME)),
                                                     Lots = api.HistoryDealGetDouble(deal_ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_VOLUME),
-                                                    Price = api.HistoryDealGetDouble(deal_ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PRICE),
-                                                    Profit = api.HistoryDealGetDouble(deal_ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PROFIT)
+                                                    OpenPrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN),
+                                                    ClosePrice = api.HistoryDealGetDouble(deal_ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PRICE),
+                                                    Profit = api.HistoryDealGetDouble(deal_ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PROFIT),
+                                                    Swap = api.HistoryDealGetDouble(deal_ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_SWAP),
+                                                    Commission = api.HistoryDealGetDouble(deal_ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_COMMISSION)
                                                 };
                                                 var type = api.HistoryDealGetInteger(deal_ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TYPE);
                                                 if (type == (long)ENUM_DEAL_TYPE.DEAL_TYPE_BUY) order.Type = "Sell";
@@ -334,13 +357,17 @@ namespace MT5WrapperInterface
                                                 api.PositionSelectByTicket((ulong)order_ticket);
                                                 var order = new OrderData
                                                 {
-                                                    Ticket = order_ticket,
+                                                    Ticket = api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TICKET),
                                                     Symbol = api.PositionGetString(ENUM_POSITION_PROPERTY_STRING.POSITION_SYMBOL),
-                                                    Time = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME)),
+                                                    OpenTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME)),
+                                                    CloseTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME_UPDATE)),
                                                     Lots = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_VOLUME),
-                                                    Price = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN),
+                                                    OpenPrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN),
+                                                    ClosePrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_CURRENT),
                                                     Profit = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PROFIT),
-                                                    Type = new CultureInfo("en-US").TextInfo.ToTitleCase(((ENUM_POSITION_TYPE)api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE)).ToString().Split('_')[2].ToLower())
+                                                    Type = new CultureInfo("en-US").TextInfo.ToTitleCase(((ENUM_POSITION_TYPE)api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE)).ToString().Split('_')[2].ToLower()),
+                                                    Swap = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_SWAP),
+                                                    Commission = 0
                                                 };
                                                 Ords = new OrderData[1] { order };
                                             }
@@ -354,13 +381,17 @@ namespace MT5WrapperInterface
                                     api.PositionSelectByTicket((ulong)order_ticket);
                                     var order = new OrderData
                                     {
-                                        Ticket = order_ticket,
+                                        Ticket = api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TICKET),
                                         Symbol = api.PositionGetString(ENUM_POSITION_PROPERTY_STRING.POSITION_SYMBOL),
-                                        Time = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME)),
+                                        OpenTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME)),
+                                        CloseTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME_UPDATE)),
                                         Lots = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_VOLUME),
-                                        Price = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN),
+                                        OpenPrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN),
+                                        ClosePrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_CURRENT),
                                         Profit = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PROFIT),
-                                        Type = new CultureInfo("en-US").TextInfo.ToTitleCase(((ENUM_POSITION_TYPE)api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE)).ToString().Split('_')[2].ToLower())
+                                        Type = new CultureInfo("en-US").TextInfo.ToTitleCase(((ENUM_POSITION_TYPE)api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE)).ToString().Split('_')[2].ToLower()),
+                                        Swap = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_SWAP),
+                                        Commission = 0
                                     };
                                     Ords = new OrderData[1] { order };
                                 }
@@ -378,13 +409,17 @@ namespace MT5WrapperInterface
                         api.PositionSelectByTicket(order_ticket);
                         var order = new OrderData
                         {
-                            Ticket = (long)order_ticket,
+                            Ticket = api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TICKET),
                             Symbol = api.PositionGetString(ENUM_POSITION_PROPERTY_STRING.POSITION_SYMBOL),
-                            Time = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME)),
+                            OpenTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME)),
+                            CloseTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME_UPDATE)),
                             Lots = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_VOLUME),
-                            Price = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN),
+                            OpenPrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN),
+                            ClosePrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_CURRENT),
                             Profit = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PROFIT),
-                            Type = new CultureInfo("en-US").TextInfo.ToTitleCase(((ENUM_POSITION_TYPE)api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE)).ToString().Split('_')[2].ToLower())
+                            Type = new CultureInfo("en-US").TextInfo.ToTitleCase(((ENUM_POSITION_TYPE)api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE)).ToString().Split('_')[2].ToLower()),
+                            Swap = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_SWAP),
+                            Commission = 0
                         };
                         Ords = new OrderData[1] { order };
                         break;
@@ -453,6 +488,15 @@ namespace MT5WrapperInterface
         #region Constructor
         public MT5Wrapper()
         {
+            Port = 8228;
+            api = new MtApi5Client();
+            api.ConnectionStateChanged += APIOnConnectionStateChanged;
+            api.OnTradeTransaction += APIOnTradeTransaction;
+            api.QuoteUpdated += APIOnQuoteUpdated;
+        }
+        public MT5Wrapper(int port)
+        {
+            Port = port;
             api = new MtApi5Client();
             api.ConnectionStateChanged += APIOnConnectionStateChanged;
             api.OnTradeTransaction += APIOnTradeTransaction;
@@ -463,7 +507,7 @@ namespace MT5WrapperInterface
         #region Exported Functions
         public int Connect()
         {
-            api.BeginConnect(port);
+            api.BeginConnect(Port);
             while (api.ConnectionState == Mt5ConnectionState.Connecting || api.ConnectionState == Mt5ConnectionState.Disconnected) Thread.Sleep(1);
             if (api.ConnectionState == Mt5ConnectionState.Connected) return 0;
             else return 4;
@@ -502,6 +546,17 @@ namespace MT5WrapperInterface
             else throw new Exception("Not Connected");
         }
 
+        public double GetServerPing()
+        {
+            if (api.ConnectionState == Mt5ConnectionState.Connected)
+            {
+                var micro = api.TerminalInfoInteger(ENUM_TERMINAL_INFO_INTEGER.TERMINAL_PING_LAST);
+                var ms = (double)micro / 1000;
+                return ms;
+            }
+            else throw new Exception("Not Connected");
+        }
+
         public double GetAccountBalance()
         {
             if (api.ConnectionState == Mt5ConnectionState.Connected)
@@ -526,23 +581,31 @@ namespace MT5WrapperInterface
             {
                 api.HistorySelect(from, to);
                 int total = api.HistoryDealsTotal();
-                OrderData[] orders = new OrderData[total];
+                List<OrderData> orders = new List<OrderData>();
                 for (int i = 0; i < total; i++)
                 {
                     OrderData ord = new OrderData();
                     var ticket = api.HistoryDealGetTicket(i);
-                    ord.Ticket = (long)ticket;
+                    var type = api.HistoryDealGetInteger(ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TYPE);
+                    var entry = api.HistoryDealGetInteger(ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_ENTRY);
+                    if (entry != (long)ENUM_DEAL_ENTRY.DEAL_ENTRY_OUT) continue;
+                    if (type == (long)ENUM_DEAL_TYPE.DEAL_TYPE_BUY) ord.Type = "SELL";
+                    else if (type == (long)ENUM_DEAL_TYPE.DEAL_TYPE_SELL) ord.Type = "BUY";
+                    else continue;
+                    api.PositionSelectByTicket((ulong)api.HistoryDealGetInteger(ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_POSITION_ID));
+                    ord.Ticket = api.HistoryDealGetInteger(ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_POSITION_ID);
                     ord.Symbol = api.HistoryDealGetString(ticket, ENUM_DEAL_PROPERTY_STRING.DEAL_SYMBOL);
                     ord.Lots = api.HistoryDealGetDouble(ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_VOLUME);
-                    ord.Price = api.HistoryDealGetDouble(ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PRICE);
+                    ord.OpenPrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN);
+                    ord.ClosePrice = api.HistoryDealGetDouble(ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PRICE);
                     ord.Profit = api.HistoryDealGetDouble(ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PROFIT);
-                    ord.Time = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.HistoryDealGetInteger(ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TIME));
-                    var type = api.HistoryDealGetInteger(ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TYPE);
-                    if (type == (long)ENUM_DEAL_TYPE.DEAL_TYPE_BUY) ord.Type = "BUY";
-                    else if (type == (long)ENUM_DEAL_TYPE.DEAL_TYPE_SELL) ord.Type = "SELL";
-                    orders[i] = ord;
+                    ord.OpenTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME));
+                    ord.CloseTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.HistoryDealGetInteger(ticket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TIME));
+                    ord.Swap = api.HistoryDealGetDouble(ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_SWAP);
+                    ord.Commission = api.HistoryDealGetDouble(ticket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_COMMISSION);
+                    orders.Add(ord);
                 }
-                return orders;
+                return orders.ToArray();
             }
             else throw new Exception("Not Connected");
         }
@@ -561,9 +624,13 @@ namespace MT5WrapperInterface
                     ord.Ticket = (long)ticket;
                     ord.Symbol = api.PositionGetString(ENUM_POSITION_PROPERTY_STRING.POSITION_SYMBOL);
                     ord.Lots = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_VOLUME);
-                    ord.Price = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN);
+                    ord.OpenPrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_OPEN);
+                    ord.ClosePrice = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PRICE_CURRENT);
                     ord.Profit = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PROFIT);
-                    ord.Time = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME));
+                    ord.OpenTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME));
+                    ord.CloseTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TIME_UPDATE));
+                    ord.Swap = api.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_SWAP);
+                    ord.Commission = 0;
                     var type = api.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE);
                     if (type == (long)ENUM_POSITION_TYPE.POSITION_TYPE_BUY) ord.Type = "Buy";
                     else if (type == (long)ENUM_POSITION_TYPE.POSITION_TYPE_SELL) ord.Type = "Sell";

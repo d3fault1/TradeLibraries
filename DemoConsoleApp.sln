@@ -9,7 +9,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MT5WrapperInterface", "MT5W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MT4WrapperInterface", "MT4Wrapper\MT4WrapperInterface.csproj", "{D7D1C2D0-36FF-4B96-A520-556C8D9042F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CTWrapperInterface", "CTWrapperInterface\CTWrapperInterface.csproj", "{96C2D36B-BBEA-4806-B3C1-3BFDAD01854F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CTWrapperInterface", "CTWrapper\CTWrapperInterface.csproj", "{96C2D36B-BBEA-4806-B3C1-3BFDAD01854F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeViewer", "TradeViewer\TradeViewer.csproj", "{4E9D99B1-FB2A-4457-A441-6A529C349D14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeLoggerMini", "TradeLoggerMini\TradeLoggerMini.csproj", "{BAB562E2-FA1D-4912-B24B-58EDAD382BD5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +37,14 @@ Global
 		{96C2D36B-BBEA-4806-B3C1-3BFDAD01854F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96C2D36B-BBEA-4806-B3C1-3BFDAD01854F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96C2D36B-BBEA-4806-B3C1-3BFDAD01854F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E9D99B1-FB2A-4457-A441-6A529C349D14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E9D99B1-FB2A-4457-A441-6A529C349D14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E9D99B1-FB2A-4457-A441-6A529C349D14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E9D99B1-FB2A-4457-A441-6A529C349D14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAB562E2-FA1D-4912-B24B-58EDAD382BD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAB562E2-FA1D-4912-B24B-58EDAD382BD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAB562E2-FA1D-4912-B24B-58EDAD382BD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAB562E2-FA1D-4912-B24B-58EDAD382BD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

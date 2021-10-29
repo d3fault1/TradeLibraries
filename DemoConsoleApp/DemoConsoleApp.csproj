@@ -54,7 +54,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CTWrapperInterface\CTWrapperInterface.csproj">
+    <ProjectReference Include="..\CTWrapper\CTWrapperInterface.csproj">
       <Project>{96c2d36b-bbea-4806-b3c1-3bfdad01854f}</Project>
       <Name>CTWrapperInterface</Name>
     </ProjectReference>

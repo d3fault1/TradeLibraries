@@ -11,8 +11,8 @@ namespace Demo
 {
     class Program
     {
-        //private MT4Wrapper wrapper = new MT4Wrapper();
-        private CTWrapper wrapper = new CTWrapper();
+        private MT5Wrapper wrapper = new MT5Wrapper();
+        //private CTWrapper wrapper = new CTWrapper();
 
         //private struct CredFormat
         //{
@@ -167,7 +167,11 @@ namespace Demo
                         Console.WriteLine(">Invalid syntax. See help");
                         continue;
                     }
-                    main.GetOrderHistory(DateTime.Parse(start), DateTime.Parse(end));
+                    //Console.WriteLine($"{start} => {end}");
+                    DateTime from = DateTime.Parse(start);
+                    DateTime to = DateTime.Parse(end);
+                    //Console.WriteLine($"{from.Year} => {from.Month} => {from.Day} => {from.Hour} => {from.Minute} => {from.Second}");
+                    main.GetOrderHistory(from, to);
                 }
                 else if (mode.ToLower() == "getpositions")
                 {
@@ -239,25 +243,25 @@ namespace Demo
             wrapper.OnTradeOccurrance += TradeOccurrance;
         }
 
-        private void QuoteUpdate(object sender, CTWrapper.QuoteEventArgs args)
+        private void QuoteUpdate(object sender, MT5Wrapper.QuoteEventArgs args)
         {
             p.StandardInput.WriteLine(wrapper.GetAccountEquity());
         }
 
-        private void TradeOccurrance(object sender, CTWrapper.TransactionEventArgs args)
+        private void TradeOccurrance(object sender, MT5Wrapper.TransactionEventArgs args)
         {
             Console.WriteLine(args.Event);
             foreach (var order in args.Orders)
-                Console.WriteLine($">Symbol: {order.Symbol}, Ticket: {order.Ticket}, Time: {order.Time}, Type: {order.Type}, Volume: {order.Lots}, Price: {order.Price}, Profit: {order.Profit}");
+                Console.WriteLine($">Symbol: {order.Symbol}, Ticket: {order.Ticket}, OpenTime: {order.OpenTime}, CloseTime: {order.CloseTime}, Type: {order.Type}, Volume: {order.Lots}, OpenPrice: {order.OpenPrice}, ClosePrice: {order.ClosePrice}, Profit: {order.Profit}");
             //foreach (var data in args.Data)
             //{
             //    Console.WriteLine(data.Event);
-            //    Console.WriteLine($">Symbol: {data.Order.Symbol}, Ticket: {data.Order.Ticket}, Time: {data.Order.Time}, Type: {data.Order.Type}, Volume: {data.Order.Lots}, Price: {data.Order.Price}, Profit: {data.Order.Profit}");
+            //    Console.WriteLine($">Symbol: {data.Order.Symbol}, Ticket: {data.Order.Ticket}, OpenTime: {data.Order.OpenTime}, CloseTime: {data.Order.CloseTime}, Type: {data.Order.Type}, Volume: {data.Order.Lots}, OpenPrice: {data.Order.OpenPrice}, ClosePrice: {data.Order.ClosePrice}, Profit: {data.Order.Profit}");
             //    Console.Write(">");
             //}
         }
 
-        private void ConnectionProgressed(object sender, CTWrapper.ConnectionProgressEventArgs args)
+        private void ConnectionProgressed(object sender, MT5Wrapper.ConnectionProgressEventArgs args)
         {
             //if (args.Progress == "Disconnected")
             //{
@@ -368,7 +372,7 @@ namespace Demo
             Console.WriteLine(">Fetching order history...");
             var orders = wrapper.GetOrderHistory(start, end);
             foreach (var order in orders)
-                Console.WriteLine($">Symbol: {order.Symbol}, Ticket: {order.Ticket}, Time: {order.Time}, Type: {order.Type}, Volume: {order.Lots}, Price: {order.Price}, Profit: {order.Profit}");
+                Console.WriteLine($">Symbol: {order.Symbol}, Ticket: {order.Ticket}, OpenTime: {order.OpenTime}, CloseTime: {order.CloseTime}, Type: {order.Type}, Volume: {order.Lots}, OpenPrice: {order.OpenPrice}, ClosePrice: {order.ClosePrice}, Profit: {order.Profit}");
         }
 
         private void GetPositions()
@@ -376,7 +380,7 @@ namespace Demo
             Console.WriteLine(">Fetching positions...");
             var orders = wrapper.GetPositions();
             foreach (var order in orders)
-                Console.WriteLine($">Symbol: {order.Symbol}, Ticket: {order.Ticket}, Time: {order.Time}, Type: {order.Type}, Volume: {order.Lots}, Price: {order.Price}, Profit: {order.Profit}");
+                Console.WriteLine($">Symbol: {order.Symbol}, Ticket: {order.Ticket}, OpenTime: {order.OpenTime}, CloseTime: {order.CloseTime}, Type: {order.Type}, Volume: {order.Lots}, OpenPrice: {order.OpenPrice}, ClosePrice: {order.ClosePrice}, Profit: {order.Profit}");
         }
 
         private void ClosePositions(int mode)

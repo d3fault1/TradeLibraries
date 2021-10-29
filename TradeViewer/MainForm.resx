@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="logTextBox.Text" xml:space="preserve">
+    <value>20201011 10:25:23 --I–- Checking License... Unlicensed! Halting... 
+20201012 14:25:23 --I–- Checking License... Valid License Detected!
+20201012 14:25:23 --I–- Connecting to Myaccount#1 (ctrader)...
+20201012 14:25:24 --I–- Connecting to Myaccount#2 (MT5)...
+20201012 14:25:25 --I–- Myaccount#2 (MT5): Connected! 
+20201012 14:25:26 --I–- Myaccount#1 (ctrader): Connected!
+20201012 14:25:26 --I–- Myaccount#1 (ctrader): Fetching Order History...
+20201012 14:25:27 --I–- Myaccount#2 (MT5): Fetching Order History...
+20201012 14:25:28 --I–- Myaccount#1 (ctrader): Order History fetched! (Total: 100, Daily: 5)
+20201012 14:25:28 --I–- Myaccount#2 (MT5): Order History fetched! (Total: 234, Daily: 14)
+20201012 14:25:29 --I–- Selected date: 20201012 (Today). Listening...
+20201012 14:26:30 --I–- Myaccount#1 (ctrader): #### Order Closed #### - GBPUSD, 0.11 lots. PnL: +0.202%
+20201012 14:26:36 --I–- Myaccount#2 (MT5): #### Order Closed #### - USDJPY, 0.25 lots. PnL: +0.093%
+20201012 14:25:26 --I–- Myaccount#1 (ctrader): Disconnected! Reconnecting...
+20201012 14:46:32 --I–- Myaccount#2 (MT5): #### Order Closed #### - EURUSD, 0.15 lots. PnL: -0.197%
+20201012 14:47:34 --I–- Myaccount#1 (ctrader): Connected!
+20201012 14:47:34 --E–- Myaccount#2 (MT5): Server unreachable! (Ping Google.com: 23ms)
+20201012 15:25:24 --I–- Connecting to Myaccount#2 (MT5)...
+20201012 15:25:25 --I–- Myaccount#2 (MT5): Connected! 
+20201012 15:25:27 --I–- Myaccount#2 (MT5): Fetching Order History...
+20201012 15:25:28 --I–- Myaccount#2 (MT5): Order History fetched!
+20201012 15:35:28 --E–- Offline: No Internet connection! Retrying...
+20201012 15:37:22 --E–- Back Online!
+20201012 16:25:23 --I–- Connecting to Myaccount#1 (ctrader)...
+20201012 16:25:24 --I–- Connecting to Myaccount#2 (MT5)...
+20201012 16:25:25 --I–- Myaccount#2 (MT5): Connected! 
+20201012 16:25:26 --I–- Myaccount#1 (ctrader): Connected!
+20201012 16:25:26 --I–- Myaccount#1 (ctrader): Fetching Order History...
+20201012 16:25:27 --I–- Myaccount#2 (MT5): Fetching Order History...
+20201012 16:25:28 --I–- Myaccount#1 (ctrader): Order History fetched! (Total: 101, Daily: 6)
+20201012 16:25:28 --I–- Myaccount#2 (MT5): Order History fetched! (Total: 236, Daily: 16)
+20201012 17:12:32 --I–- Selected date: 20200901.
+20201012 17:12:32 --I–- Myaccount#1 (ctrader): Fetching Order History for day 20200901
+20201012 17:12:32 --I–- Myaccount#2 (MT5): Fetching Order History for day 20200901
+20201012 17:12:35 --I–- Selected date: 20201012 (Today). Listening...
+20201012 17:16:32 --I–- Myaccount#2 (MT5): #### Order Closed #### - EURUSD, 0.15 lots. PnL: -2.290%
+20201012 17:16:32 --W–- Myaccount#2 (MT5): Daily DD Threshold (2.50%) reached: 2.51%. Closing all current positions...
+20201012 17:16:32 --W–- Myaccount#2 (MT5): Daily DD Threshold (2.50%) reached: 2.53%. Closing GBPUSD, 0.15 lots. PnL: +0.02%
+20201012 17:16:32 --W–- Myaccount#2 (MT5): Daily DD Threshold (2.50%) reached: 2.56%. Closing EURUSD, 0.10 lots. PnL: +0.03%</value>
+  </data>
+</root>

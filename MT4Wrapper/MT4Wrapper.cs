@@ -17,10 +17,18 @@ namespace MT4WrapperInterface
 
         #region Globals
         private MtApiClient api;
-        private int port = 8222;
+        private int Port;
 
         private TimerTradeMonitor trademon;
         private ModifiedOrdersMonitor modmon;
+
+        public bool IsConnected
+        {
+            get
+            {
+                return api.ConnectionState == MtConnectionState.Connected;
+            }
+        }
 
         public struct AccountInfo
         {
@@ -35,11 +43,15 @@ namespace MT4WrapperInterface
         {
             public string Symbol;
             public long Ticket;
-            public DateTime Time;
+            public DateTime OpenTime;
+            public DateTime CloseTime;
             public string Type;
             public double Lots;
-            public double Price;
+            public double OpenPrice;
+            public double ClosePrice;
             public double Profit;
+            public double Swap;
+            public double Commission;
         }
         public struct MonitorData
         {
@@ -97,10 +109,9 @@ namespace MT4WrapperInterface
         }
         private void OnAvailabilityOrdersChanged(object sender, AvailabilityOrdersEventArgs e)
         {
-            Console.WriteLine("Yeap");
             List<MonitorData> data = new List<MonitorData>();
-            foreach (var ord in e.Opened) data.Add(new MonitorData { Event = TransactionEvent.OrderOpened, Order = new OrderData { Ticket = ord.Ticket, Symbol = ord.Symbol, Lots = ord.Lots, Price = ord.OpenPrice, Profit = ord.Profit, Time = ord.OpenTime, Type = new CultureInfo("en-US").TextInfo.ToTitleCase(ord.Operation.ToString().Split('_')[1].ToLower()) } });
-            foreach (var ord in e.Closed) data.Add(new MonitorData { Event = TransactionEvent.OrderClosed, Order = new OrderData { Ticket = ord.Ticket, Symbol = ord.Symbol, Lots = ord.Lots, Price = ord.OpenPrice, Profit = ord.Profit, Time = ord.OpenTime, Type = new CultureInfo("en-US").TextInfo.ToTitleCase(ord.Operation.ToString().Split('_')[1].ToLower()) } });
+            foreach (var ord in e.Opened) data.Add(new MonitorData { Event = TransactionEvent.OrderOpened, Order = new OrderData { Ticket = ord.Ticket, Symbol = ord.Symbol, Lots = ord.Lots, OpenPrice = ord.OpenPrice, ClosePrice = ord.ClosePrice, Profit = ord.Profit, OpenTime = ord.OpenTime, CloseTime = ord.CloseTime, Type = new CultureInfo("en-US").TextInfo.ToTitleCase(ord.Operation.ToString().Split('_')[1].ToLower()), Swap = ord.Swap, Commission = ord.Commission } });
+            foreach (var ord in e.Closed) data.Add(new MonitorData { Event = TransactionEvent.OrderClosed, Order = new OrderData { Ticket = ord.Ticket, Symbol = ord.Symbol, Lots = ord.Lots, OpenPrice = ord.OpenPrice, ClosePrice = ord.ClosePrice, Profit = ord.Profit, OpenTime = ord.OpenTime, CloseTime = ord.CloseTime, Type = new CultureInfo("en-US").TextInfo.ToTitleCase(ord.Operation.ToString().Split('_')[1].ToLower()), Swap = ord.Swap, Commission = ord.Commission } });
             var args = new TransactionEventArgs
             {
                 Data = data.ToArray()
@@ -110,9 +121,8 @@ namespace MT4WrapperInterface
         }
         private void OnOrdersModified(object sender, ModifiedOrdersEventArgs e)
         {
-            Console.WriteLine("Asche");
             List<MonitorData> data = new List<MonitorData>();
-            foreach (var ord in e.ModifiedOrders) data.Add(new MonitorData { Event = TransactionEvent.OrderModified, Order = new OrderData { Ticket = ord.NewOrder.Ticket, Symbol = ord.NewOrder.Symbol, Lots = ord.NewOrder.Lots, Price = ord.NewOrder.OpenPrice, Profit = ord.NewOrder.Profit, Time = ord.NewOrder.OpenTime, Type = new CultureInfo("en-US").TextInfo.ToTitleCase(ord.NewOrder.Operation.ToString().Split('_')[1].ToLower()) } });
+            foreach (var ord in e.ModifiedOrders) data.Add(new MonitorData { Event = TransactionEvent.OrderModified, Order = new OrderData { Ticket = ord.NewOrder.Ticket, Symbol = ord.NewOrder.Symbol, Lots = ord.NewOrder.Lots, OpenPrice = ord.NewOrder.OpenPrice, ClosePrice = ord.NewOrder.ClosePrice, Profit = ord.NewOrder.Profit, OpenTime = ord.NewOrder.OpenTime, CloseTime = ord.NewOrder.CloseTime, Type = new CultureInfo("en-US").TextInfo.ToTitleCase(ord.NewOrder.Operation.ToString().Split('_')[1].ToLower()), Swap = ord.NewOrder.Swap, Commission = ord.NewOrder.Commission } });
             var args = new TransactionEventArgs
             {
                 Data = data.ToArray()
@@ -125,6 +135,18 @@ namespace MT4WrapperInterface
         #region Constructor
         public MT4Wrapper()
         {
+            Port = 8222;
+            api = new MtApiClient();
+            trademon = new TimerTradeMonitor(api, new TimeElapsedTrigger(TimeSpan.FromSeconds(3))) { SyncTrigger = true };
+            modmon = new ModifiedOrdersMonitor(api, new TimeElapsedTrigger(TimeSpan.FromSeconds(3))) { SyncTrigger = true };
+            api.ConnectionStateChanged += APIOnConnectionStateChanged;
+            api.QuoteUpdated += APIOnQuoteUpdated;
+            trademon.AvailabilityOrdersChanged += OnAvailabilityOrdersChanged;
+            modmon.OrdersModified += OnOrdersModified;
+        }
+        public MT4Wrapper(int port)
+        {
+            Port = port;
             api = new MtApiClient();
             trademon = new TimerTradeMonitor(api, new TimeElapsedTrigger(TimeSpan.FromSeconds(3))) { SyncTrigger = true };
             modmon = new ModifiedOrdersMonitor(api, new TimeElapsedTrigger(TimeSpan.FromSeconds(3))) { SyncTrigger = true };
@@ -138,7 +160,7 @@ namespace MT4WrapperInterface
         #region Exported Functions
         public int Connect()
         {
-            api.BeginConnect(port);
+            api.BeginConnect(Port);
             while (api.ConnectionState == MtConnectionState.Disconnected || api.ConnectionState == MtConnectionState.Connecting) Thread.Sleep(1);
             if (api.ConnectionState == MtConnectionState.Connected)
             {
@@ -187,6 +209,17 @@ namespace MT4WrapperInterface
             else throw new Exception("Not Connected");
         }
 
+        public double GetServerPing()
+        {
+            if (api.IsConnected())
+            {
+                var micro = api.TerminalInfoInteger(EnumTerminalInfoInteger.TERMINAL_PING_LAST);
+                var ms = (double)micro / 1000;
+                return ms;
+            }
+            else throw new Exception("Not Connected");
+        }
+
         public double GetAccountBalance()
         {
             if (api.IsConnected())
@@ -210,15 +243,19 @@ namespace MT4WrapperInterface
             if (api.IsConnected())
             {
                 var total = api.GetOrders(OrderSelectSource.MODE_HISTORY);
-                OrderData[] orders = total.Select(ttl => new OrderData
+                OrderData[] orders = total.Where(ttl => (ttl.CloseTime >= from && ttl.CloseTime <= to) && (ttl.Operation == TradeOperation.OP_BUY || ttl.Operation == TradeOperation.OP_SELL)).Select(ord => new OrderData
                 {
-                    Ticket = ttl.Ticket,
-                    Symbol = ttl.Symbol,
-                    Lots = ttl.Lots,
-                    Price = ttl.OpenPrice,
-                    Profit = ttl.Profit,
-                    Time = ttl.OpenTime,
-                    Type = ttl.Operation.ToString().Split('_')[1]
+                    Ticket = ord.Ticket,
+                    Symbol = ord.Symbol,
+                    Lots = ord.Lots,
+                    OpenPrice = ord.OpenPrice,
+                    ClosePrice = ord.ClosePrice,
+                    Profit = ord.Profit,
+                    OpenTime = ord.OpenTime,
+                    CloseTime = ord.CloseTime,
+                    Type = ord.Operation.ToString().Split('_')[1],
+                    Swap = ord.Swap,
+                    Commission = ord.Commission
                 }).ToArray();
                 return orders;
             }
@@ -235,10 +272,14 @@ namespace MT4WrapperInterface
                     Ticket = ttl.Ticket,
                     Symbol = ttl.Symbol,
                     Lots = ttl.Lots,
-                    Price = ttl.OpenPrice,
+                    OpenPrice = ttl.OpenPrice,
+                    ClosePrice = ttl.ClosePrice,
                     Profit = ttl.Profit,
-                    Time = ttl.OpenTime,
-                    Type = ttl.Operation.ToString().Split('_')[1]
+                    OpenTime = ttl.OpenTime,
+                    CloseTime = ttl.CloseTime,
+                    Type = ttl.Operation.ToString().Split('_')[1],
+                    Swap = ttl.Swap,
+                    Commission = ttl.Commission
                 }).ToArray();
                 return orders;
             }
