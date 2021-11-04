@@ -49,7 +49,7 @@ namespace TradeLoggerMini
             }
         }
 
-        public List<Trade> LoadTrades()
+        public List<Trade> LoadTrades(int days)
         {
             var trades = new List<Trade>();
             if (File.Exists("minidb.db"))
@@ -57,8 +57,10 @@ namespace TradeLoggerMini
                 connection.Open();
                 var cmd = new SQLiteCommand(connection);
                 cmd.CommandText = "SELECT * FROM trades WHERE closingTimeUnix BETWEEN @start AND @end";
-                var start = ToUnixTime(DateTime.Today);
-                var end = ToUnixTime(DateTime.Today.Add(new TimeSpan(23, 59, 59)));
+                var enddate = DateTime.Today.AddDays(1).Add(new TimeSpan(23, 59, 59));
+                var startdate = enddate.Date.AddDays((days * -1));
+                var start = ToUnixTime(startdate);
+                var end = ToUnixTime(enddate);
                 cmd.Parameters.AddWithValue("@start", start);
                 cmd.Parameters.AddWithValue("@end", end);
                 cmd.Prepare();
@@ -73,9 +75,9 @@ namespace TradeLoggerMini
                             accountAlias = rdr.GetString(0),
                             orderID = rdr.GetString(1),
                             closingTimeUnix = rdr.GetInt64(2),
-                            closingTime = rdr.GetDateTime(3),
-                            symbol = rdr.GetString(3),
-                            netPnLPercent = rdr.GetDouble(4)
+                            closingTime = DateTime.Parse(rdr.GetString(3)),
+                            symbol = rdr.GetString(4),
+                            netPnLPercent = rdr.GetDouble(5)
                         };
                         trades.Add(trade);
                     }
@@ -118,7 +120,8 @@ namespace TradeLoggerMini
 
         public long ToUnixTime(DateTime time)
         {
-            return (long)Math.Round((TimeZoneInfo.ConvertTimeToUtc(time) - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds);
+            var localTime = new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute, time.Second, time.Millisecond, DateTimeKind.Local);
+            return (long)(TimeZoneInfo.ConvertTimeToUtc(localTime) - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
         }
 
         public DateTime FromUnixTime(double value)

@@ -11,8 +11,8 @@ namespace Demo
 {
     class Program
     {
-        private MT5Wrapper wrapper = new MT5Wrapper();
-        //private CTWrapper wrapper = new CTWrapper();
+        //private MT4Wrapper wrapper = new MT4Wrapper();
+        private CTWrapper wrapper = new CTWrapper();
 
         //private struct CredFormat
         //{
@@ -243,12 +243,12 @@ namespace Demo
             wrapper.OnTradeOccurrance += TradeOccurrance;
         }
 
-        private void QuoteUpdate(object sender, MT5Wrapper.QuoteEventArgs args)
+        private void QuoteUpdate(object sender, CTWrapper.QuoteEventArgs args)
         {
             p.StandardInput.WriteLine(wrapper.GetAccountEquity());
         }
 
-        private void TradeOccurrance(object sender, MT5Wrapper.TransactionEventArgs args)
+        private void TradeOccurrance(object sender, CTWrapper.TransactionEventArgs args)
         {
             Console.WriteLine(args.Event);
             foreach (var order in args.Orders)
@@ -261,7 +261,7 @@ namespace Demo
             //}
         }
 
-        private void ConnectionProgressed(object sender, MT5Wrapper.ConnectionProgressEventArgs args)
+        private void ConnectionProgressed(object sender, CTWrapper.ConnectionProgressEventArgs args)
         {
             //if (args.Progress == "Disconnected")
             //{

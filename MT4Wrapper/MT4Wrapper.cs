@@ -96,6 +96,11 @@ namespace MT4WrapperInterface
                 Message = e.ConnectionMessage
             };
 
+            if (trademon.IsMtConnected && !trademon.IsStarted) trademon.Start();
+            if (!trademon.IsMtConnected && trademon.IsStarted) trademon.Stop();
+            if (modmon.IsMtConnected && !modmon.IsStarted) modmon.Start();
+            if (!modmon.IsMtConnected && modmon.IsStarted) trademon.Stop();
+
             OnConnectionProgressed?.Invoke(sender, args);
         }
         private void APIOnQuoteUpdated(object sender, string symbol, double bid, double ask)
@@ -162,12 +167,7 @@ namespace MT4WrapperInterface
         {
             api.BeginConnect(Port);
             while (api.ConnectionState == MtConnectionState.Disconnected || api.ConnectionState == MtConnectionState.Connecting) Thread.Sleep(1);
-            if (api.ConnectionState == MtConnectionState.Connected)
-            {
-                if (!trademon.IsStarted && trademon.IsMtConnected) trademon.Start();
-                if (!modmon.IsStarted && modmon.IsMtConnected) modmon.Start();
-                return 0;
-            }
+            if (api.ConnectionState == MtConnectionState.Connected) return 0;
             else return 4;
         }
 
@@ -175,12 +175,7 @@ namespace MT4WrapperInterface
         {
             api.BeginDisconnect();
             while (api.ConnectionState == MtConnectionState.Connected) Thread.Sleep(1);
-            if (api.ConnectionState == MtConnectionState.Disconnected)
-            {
-                if (trademon.IsStarted) trademon.Stop();
-                if (modmon.IsStarted) modmon.Stop();
-                return 0;
-            }
+            if (api.ConnectionState == MtConnectionState.Disconnected) return 0;
             else return 1;
         }
 

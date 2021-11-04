@@ -27,7 +27,7 @@ namespace TradeLoggerMini
             var res = ConfigLoad();
             if (res)
             {
-                form.UpdateConfig(current_config.alias, current_config.platform, current_config.port);
+                form.UpdateConfig(current_config.alias, current_config.platform, current_config.port, current_config.days);
             }
         }
 
@@ -47,9 +47,10 @@ namespace TradeLoggerMini
             return true;
         }
 
-        public void UpdateConfig(string alias, string plat, int port)
+        public void ConfigUpdate(string alias, string plat, int port, int day)
         {
-            current_config = new Config { alias = alias, platform = plat, port = port };
+            current_config = new Config { alias = alias, platform = plat, port = port, days = day };
+            Form.Text = "API Connector - " + current_config.alias;
             dbIO.SaveConfig(current_config);
             ctraderapi = new CTWrapper(current_config.port);
             mt4api = new MT4Wrapper(current_config.port);
@@ -112,7 +113,7 @@ namespace TradeLoggerMini
                 {
                     var bal = getBalance();
                     bal -= ord.Profit;
-                    updateMasterArray(new Trade { accountAlias = current_config.alias, orderID = ord.Ticket.ToString(), symbol = ord.Symbol, closingTime = ord.CloseTime, closingTimeUnix = dbIO.ToUnixTime(ord.CloseTime), netPnLPercent = Math.Round((ord.Profit / bal) * 100, 2) });
+                    updateMasterArray(new Trade { accountAlias = current_config.alias, orderID = ord.ClosingTicket.ToString(), symbol = ord.Symbol, closingTime = ord.CloseTime, closingTimeUnix = dbIO.ToUnixTime(ord.CloseTime), netPnLPercent = Math.Round((ord.Profit / bal) * 100, 2) });
                 }
             }
         }
@@ -138,7 +139,7 @@ namespace TradeLoggerMini
                 {
                     var bal = getBalance();
                     bal -= ord.Profit;
-                    updateMasterArray(new Trade { accountAlias = current_config.alias, orderID = ord.Ticket.ToString(), symbol = ord.Symbol, closingTime = ord.CloseTime, closingTimeUnix = dbIO.ToUnixTime(ord.CloseTime), netPnLPercent = Math.Round((ord.Profit / bal) * 100, 2) });
+                    updateMasterArray(new Trade { accountAlias = current_config.alias, orderID = ord.ClosingTicket.ToString(), symbol = ord.Symbol, closingTime = ord.CloseTime, closingTimeUnix = dbIO.ToUnixTime(ord.CloseTime), netPnLPercent = Math.Round((ord.Profit / bal) * 100, 2) });
                 }
             }
         }
@@ -210,31 +211,31 @@ namespace TradeLoggerMini
 
         private void setMasterArray()
         {
-            DateTime start = DateTime.Today;
-            DateTime end = DateTime.Today.Add(new TimeSpan(23, 59, 59));
+            DateTime end = DateTime.Today.AddDays(1).Add(new TimeSpan(23, 59, 59));
+            DateTime start = end.Date.AddDays((current_config.days * -1));
             List<Trade> trades = new List<Trade>();
             if (!GetConnectionStatus()) return;
             switch (current_config.platform)
             {
                 case "CTrader":
-                    trades.AddRange(ctraderapi.GetOrderHistory(start, end).Select(x => new Trade { accountAlias = current_config.alias, orderID = x.Ticket.ToString(), symbol = x.Symbol, closingTime = x.CloseTime, closingTimeUnix = dbIO.ToUnixTime(x.CloseTime), netPnLPercent = x.Profit }));
+                    trades.AddRange(ctraderapi.GetOrderHistory(start, end).Select(x => new Trade { accountAlias = current_config.alias, orderID = x.ClosingTicket.ToString(), symbol = x.Symbol, closingTime = x.CloseTime, closingTimeUnix = dbIO.ToUnixTime(x.CloseTime), netPnLPercent = x.Profit }));
                     break;
                 case "MT4":
                     trades.AddRange(mt4api.GetOrderHistory(start, end).Select(x => new Trade { accountAlias = current_config.alias, orderID = x.Ticket.ToString(), symbol = x.Symbol, closingTime = x.CloseTime, closingTimeUnix = dbIO.ToUnixTime(x.CloseTime), netPnLPercent = x.Profit }));
                     break;
                 case "MT5":
-                    trades.AddRange(mt5api.GetOrderHistory(start, end).Select(x => new Trade { accountAlias = current_config.alias, orderID = x.Ticket.ToString(), symbol = x.Symbol, closingTime = x.CloseTime, closingTimeUnix = dbIO.ToUnixTime(x.CloseTime), netPnLPercent = x.Profit }));
+                    trades.AddRange(mt5api.GetOrderHistory(start, end).Select(x => new Trade { accountAlias = current_config.alias, orderID = x.ClosingTicket.ToString(), symbol = x.Symbol, closingTime = x.CloseTime, closingTimeUnix = dbIO.ToUnixTime(x.CloseTime), netPnLPercent = x.Profit }));
                     break;
             }
             var balance = getBalance();
             for (int i = trades.Count - 1; i >= 0; i--)
             {
                 balance -= trades[i].netPnLPercent;
-                trades[i].netPnLPercent = Math.Round(((trades[i].netPnLPercent / balance) * 100), 2);
+                trades[i].netPnLPercent = (trades[i].netPnLPercent / balance) * 100;
             }
 
-            var tradesfromDB = dbIO.LoadTrades();
-            var res = trades.Except(tradesfromDB).ToList();
+            var tradesfromDB = dbIO.LoadTrades(current_config.days);
+            var res = trades.Where(tr => tradesfromDB.Find(tfdb => tfdb.accountAlias == tr.accountAlias && tfdb.orderID == tr.orderID) == null).ToList();
             dbIO.SaveTrades(res);
         }
 

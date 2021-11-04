@@ -12,6 +12,7 @@ namespace TradeLoggerMini
         public string platform;
         public string alias;
         public int port;
+        public int days;
     }
 
     class Trade : IEquatable<Trade>

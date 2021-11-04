@@ -32,6 +32,7 @@ namespace CTWrapperInterface
         {
             public string Symbol;
             public long Ticket;
+            public long ClosingTicket;
             public DateTime OpenTime;
             public DateTime CloseTime;
             public string Type;
@@ -104,6 +105,7 @@ namespace CTWrapperInterface
             var ctorder = new OrderData
             {
                 Ticket = e.Ticket,
+                ClosingTicket = e.ClosingTicket,
                 Symbol = e.Symbol,
                 Type = e.Type,
                 Profit = e.Profit,
@@ -129,6 +131,7 @@ namespace CTWrapperInterface
             var ctorder = new OrderData
             {
                 Ticket = e.Ticket,
+                ClosingTicket = e.ClosingTicket,
                 Symbol = e.Symbol,
                 Type = e.Type,
                 Profit = e.Profit,
@@ -154,6 +157,7 @@ namespace CTWrapperInterface
             var ctorder = new OrderData
             {
                 Ticket = e.Ticket,
+                ClosingTicket = e.ClosingTicket,
                 Symbol = e.Symbol,
                 Type = e.Type,
                 Profit = e.Profit,
@@ -263,6 +267,7 @@ namespace CTWrapperInterface
                     var ctorder = new OrderData
                     {
                         Ticket = order.Ticket,
+                        ClosingTicket = order.ClosingTicket,
                         Symbol = order.Symbol,
                         Type = order.Type,
                         Profit = order.Profit,
@@ -291,6 +296,7 @@ namespace CTWrapperInterface
                     var ctorder = new OrderData
                     {
                         Ticket = order.Ticket,
+                        ClosingTicket = order.ClosingTicket,
                         Symbol = order.Symbol,
                         Type = order.Type,
                         Profit = order.Profit,

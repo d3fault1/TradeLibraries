@@ -113,7 +113,7 @@ namespace TradeViewer
                         GrossProfit = ord.Profit - (ord.Swap + ord.Commission),
                         Swap = ord.Swap,
                         Commission = ord.Commission,
-                        ClosingTime = ord.Time,
+                        ClosingTime = ord.CloseTime,
                         ClosingVolume = ord.Lots
                     });
                 }
@@ -133,7 +133,7 @@ namespace TradeViewer
                         GrossProfit = ord.Profit - (ord.Swap + ord.Commission),
                         Swap = ord.Swap,
                         Commission = ord.Commission,
-                        ClosingTime = ord.Time,
+                        ClosingTime = ord.CloseTime,
                         ClosingVolume = ord.Lots
                     });
                 }
@@ -153,7 +153,7 @@ namespace TradeViewer
                         GrossProfit = ord.Profit - (ord.Swap + ord.Commission),
                         Swap = ord.Swap,
                         Commission = ord.Commission,
-                        ClosingTime = ord.Time,
+                        ClosingTime = ord.CloseTime,
                         ClosingVolume = ord.Lots
                     });
                 }
